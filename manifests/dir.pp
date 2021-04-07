@@ -53,7 +53,7 @@ define samba::dir(
     creates => $rootpath,
   }
 
-  file {$rootpath:
+  file { $rootpath:
     ensure  => directory,
     require => Exec["Create path ${rootpath}"],
     owner   => $owner,
