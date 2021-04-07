@@ -47,10 +47,10 @@ define samba::dir(
   $rootpath = regsubst($path, '(^[^%]*/)[^%]*%.*', '\1')
   assert_type(Stdlib::Absolutepath, $rootpath)
 
-  exec {"Create path ${rootpath}":
+  exec { "Create path ${rootpath}":
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
-    unless  => "test -e '${rootpath}'",
     command => "mkdir -p '${rootpath}'",
+    creates => $rootpath,
   }
 
   file {$rootpath:
