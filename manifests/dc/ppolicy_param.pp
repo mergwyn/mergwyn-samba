@@ -4,6 +4,7 @@ define samba::dc::ppolicy_param(
   $option,
   $show_string,
   String $value,
+  $sambacmd = $samba::params::sambacmd,
 ){
 
   validate_re(
@@ -25,10 +26,10 @@ corresponding to option",
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     require => Service['SambaDC'],
     unless  => "[ \
-\"\$( ${samba::params::sambacmd} domain passwordsettings show -d 1 | \
+\"\$( ${sambacmd} domain passwordsettings show -d 1 | \
 sed 's/${show_string} *//p;d' )\" = \
 '${value}' ]",
-    command => "${samba::params::sambacmd} domain passwordsettings set -d 1 \
+    command => "${sambacmd} domain passwordsettings set -d 1 \
 ${option}='${value}'",
   }
 }
