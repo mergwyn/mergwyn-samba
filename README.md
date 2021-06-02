@@ -1,4 +1,6 @@
 # puppet-samba
+The original author of this module is kakwa. Forked and improved by pseiler.
+The README needs a lot of changes in the future aswell.
 [![Build Status](https://travis-ci.org/kakwa/puppet-samba.svg)](https://travis-ci.org/kakwa/puppet-samba)
 [![Downloads](https://img.shields.io/puppetforge/dt/kakwa/samba.svg)](https://forge.puppetlabs.com/kakwa/samba)
 [![Score](https://img.shields.io/puppetforge/f/kakwa/samba.svg)](https://forge.puppetlabs.com/kakwa/samba/scores)

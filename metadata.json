@@ -1,12 +1,12 @@
 {
-  "name": "kakwa-samba",
-  "version": "2.0.0",
-  "author": "kakwa",
+  "name": "pseiler-samba",
+  "version": "2.1.0",
+  "author": "pseiler",
   "summary": "Module managing Samba, including Samba as a AD Domain Controller",
   "license": "MIT",
-  "source": "https://github.com/kakwa/puppet-samba",
-  "project_page": "https://github.com/kakwa/puppet-samba",
-  "issues_url": "https://github.com/kakwa/puppet-samba/issues",
+  "source": "https://github.com/pseiler/puppet-samba",
+  "project_page": "https://github.com/pseiler/puppet-samba",
+  "issues_url": "https://github.com/pseiler/puppet-samba/issues",
   "tags": ["samba", "fileserver", "cifs", "smb", "Domain", "Controller", "DC", "AD", "Active", "Directory"],
   "dependencies": [
     {
