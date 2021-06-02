@@ -343,11 +343,11 @@ class samba::classic(
         default => $::facts['os']['family'] ? {
           'RedHat' => "dnshostname=\"${::facts['fqdn']}\" createcomputer=\"${joinou}\"",
           default  => "createcomputer=\"${joinou}\"",
-        }
+        },
         undef   => $::facts['os']['family'] ? {
           'RedHat' => "dnshostname=\"${::facts['fqdn']}\"",
           default  => '',
-        }
+        },
       }
 
       exec{ 'Join Domain':
