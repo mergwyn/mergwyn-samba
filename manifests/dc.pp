@@ -66,7 +66,7 @@ class samba::dc(
   $sambaoptstmpl                                                  = $samba::params::sambaoptstmpl,
   $sambaclientcmd                                                 = $samba::params::sambaclientcmd,
   $sambacmd                                                       = $samba::params::sambacmd,
-  $servicesambadc                                                 = $samba::params:servicesambadc,
+  $servicesambadc                                                 = $samba::params::servicesambadc,
   $sambaaddtool                                                   = $samba::params::sambaaddtool,
   $sambacreatehome                                                = $samba::params::sambacreatehome,
   Optional[String] $cleanup                                       = undef,

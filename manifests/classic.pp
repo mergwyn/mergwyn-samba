@@ -59,7 +59,7 @@ class samba::classic(
   Array $additional_realms        = [],
   $krbconffile                    = $samba::params::krbconffile,
   $nsswitchconffile               = $samba::params::nsswitchconffile,
-  $smbconffile                    = $samba::params:smbconffile,
+  $smbconffile                    = $samba::params::smbconffile,
   $sambaoptsfile                  = $samba::params::sambaoptsfile,
   $sambaoptstmpl                  = $samba::params::sambaoptstmpl,
   $sambacreatehome                = $samba::params::sambacreatehome,
