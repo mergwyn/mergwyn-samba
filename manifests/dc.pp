@@ -56,6 +56,19 @@ class samba::dc(
   $globalabsentoptions                                            = [],
   $netlogonabsentoptions                                          = [],
   $sysvolabsentoptions                                            = [],
+  $smbconffile                                                    = $samba::params::smbconffile,
+  $packagesambawinbind                                            = $samba::params::packagesambawinbind,
+  $packagesambaclient                                             = $samba::params::packagesambaclient,
+  $packagesambadc                                                 = $samba::params::packagesambadc,
+  $packagepyyaml                                                  = $samba::params::packagepyyaml,
+  $servicesmb                                                     = $samba::params::servicesmb,
+  $sambaoptsfile                                                  = $samba::params::sambaoptsfile,
+  $sambaoptstmpl                                                  = $samba::params::sambaoptstmpl,
+  $sambaclientcmd                                                 = $samba::params::sambaclientcmd,
+  $sambacmd                                                       = $samba::params::sambacmd,
+  $servicesambadc                                                 = $samba::params:servicesambadc,
+  $sambaaddtool                                                   = $samba::params::sambaaddtool,
+  $sambacreatehome                                                = $samba::params::sambacreatehome,
   Optional[String] $cleanup                                       = undef,
 ) inherits ::samba::params{
 
@@ -151,31 +164,31 @@ ex: domain="ad" and realm="ad.example.com"')
 
   file { '/etc/samba/smb_path':
     ensure  => 'present',
-    content => $::samba::params::smbconffile,
+    content => $smbconffile,
     require => File['/etc/samba/'],
   }
 
   package{ 'SambaWinBind':
     ensure  => 'installed',
-    name    => $::samba::params::packagesambawinbind,
+    name    => $packagesambawinbind,
     require => File['/etc/samba/smb_path'],
   }
 
   package{ 'SambaClient':
     ensure  => 'installed',
-    name    => $::samba::params::packagesambaclient,
+    name    => $packagesambaclient,
     require => File['/etc/samba/smb_path'],
   }
 
   package{ 'SambaDC':
     ensure  => 'installed',
-    name    => $::samba::params::packagesambadc,
+    name    => $packagesambadc,
     require => Package['SambaClient', 'SambaWinBind'],
   }
 
   service{ 'SambaClassic':
     ensure  => 'stopped',
-    name    => $::samba::params::servivesmb,
+    name    => $servicesmb,
     enable  => false,
     require => Package['SambaDC'],
     notify  => Service['SambaDC'],
@@ -200,18 +213,18 @@ ex: domain="ad" and realm="ad.example.com"')
   exec{ 'provisionAD':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     unless  => "test -d '${targetdir}/state/sysvol/${realmdowncase}/'",
-    command => "printf '' > '${::samba::params::smbconffile}' && \
-${::samba::params::sambacmd} domain provision ${hostip} \
+    command => "printf '' > '${smbconffile}' && \
+${sambacmd} domain provision ${hostip} \
 --domain='${domain}' --realm='${realm}' --dns-backend='${sambadns}' \
 --targetdir='${targetdir}' --use-rfc2307 \
---configfile='${::samba::params::smbconffile}' --server-role='${role}' ${domainprovargs} -d 1 && \
-mv '${targetdir}/etc/smb.conf' '${::samba::params::smbconffile}'",
+--configfile='${smbconffile}' --server-role='${role}' ${domainprovargs} -d 1 && \
+mv '${targetdir}/etc/smb.conf' '${smbconffile}'",
     notify  => Service['SambaDC'],
   }
 
   service{ 'SambaDC':
     ensure  => 'running',
-    name    => $::samba::params::servivesambadc,
+    name    => $servicesambadc,
     require => [ Exec['provisionAD'], File['SambaOptsFile'] ],
     enable  => true,
   }
@@ -219,19 +232,19 @@ mv '${targetdir}/etc/smb.conf' '${::samba::params::smbconffile}'",
   $sambamode = 'ad'
   # Deploy /etc/sysconfig/|/etc/defaut/ file (startup options)
   file{ 'SambaOptsFile':
-    path    => $::samba::params::sambaoptsfile,
-    content => template($::samba::params::sambaoptstmpl),
+    path    => $sambaoptsfile,
+    content => template($sambaoptstmpl),
     require => Package['SambaDC'],
     notify  => Service['SambaDC'],
   }
 
   package{ 'PyYaml':
     ensure => 'installed',
-    name   => $::samba::params::packagepyyaml,
+    name   => $packagepyyaml,
   }
 
   file{ 'SambaOptsAdditionnalTool':
-    path    => $::samba::params::sambaaddtool,
+    path    => $sambaaddtool,
     source  => "puppet:///modules/${module_name}/additional-samba-tool",
     mode    => '0755',
     require => Package['PyYaml'],
@@ -253,7 +266,7 @@ mv '${targetdir}/etc/smb.conf' '${::samba::params::smbconffile}'",
     if $dnsforwarder != undef {
       smb_setting { 'global/dns forwarder':
         ensure  => present,
-        path    => $::samba::params::smbconffile,
+        path    => $smbconffile,
         section => 'global',
         setting => 'dns forwarder',
         value   => $dnsforwarder,
@@ -272,9 +285,9 @@ mv '${targetdir}/etc/smb.conf' '${::samba::params::smbconffile}'",
   # Check and set administrator password
   unless $adminpassword == undef {
     exec{ 'setAdminPassword':
-      unless  => "${::samba::params::sambaclientcmd} \
+      unless  => "${sambaclientcmd} \
 //localhost/netlogon ${adminpassword} -Uadministrator  -c 'ls'",
-      command => "${::samba::params::sambacmd} user setpassword \
+      command => "${sambacmd} user setpassword \
 Administrator --newpassword=${adminpassword} -d 1",
       require => Service['SambaDC'],
     }
@@ -283,9 +296,9 @@ Administrator --newpassword=${adminpassword} -d 1",
   # Configure Domain function level
   exec{ 'setDomainFunctionLevel':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
-    unless  => "${::samba::params::sambacmd} domain level show  -d 1\
+    unless  => "${sambacmd} domain level show  -d 1\
 | grep 'Domain function level' | grep -q \"${domainlevel}$\"",
-    command => "${::samba::params::sambacmd} domain \
+    command => "${sambacmd} domain \
 level raise --domain-level='${domainlevel}' -d 1",
     require => Service['SambaDC'],
   }
@@ -293,9 +306,9 @@ level raise --domain-level='${domainlevel}' -d 1",
   # Configure Forest function level
   exec{ 'setForestFunctionLevel':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
-    unless  => "${::samba::params::sambacmd} domain level show -d 1\
+    unless  => "${sambacmd} domain level show -d 1\
 | grep 'Forest function level' | grep -q '${domainlevel}$'",
-    command => "${::samba::params::sambacmd} domain \
+    command => "${sambacmd} domain \
 level raise --forest-level='${domainlevel}' -d 1",
     require => Exec['setDomainFunctionLevel'],
   }
@@ -380,7 +393,7 @@ level raise --forest-level='${domainlevel}' -d 1",
   }
 
   file{ 'SambaCreateHome':
-    path   => $::samba::params::sambacreatehome,
+    path   => $sambacreatehome,
     source => "puppet:///modules/${module_name}/smb-create-home.sh",
     mode   => '0755',
   }
