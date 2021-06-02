@@ -5,9 +5,10 @@ define samba::log(
   Boolean $logtosyslog,
   $settingsignored,
   $sambaclassloglevel = undef,
+  $smbconffile = $samba::params::smbconffile,
+  $classlist   = $samba::params::logclasslist,
 ) {
 
-  $classlist = $samba::params::logclasslist
   $classliststr = join($classlist, ', ')
 
   if $sambaclassloglevel != undef {
@@ -30,7 +31,7 @@ define samba::log(
   unless member($settingsignored, 'log level'){
     smb_setting { 'global/log level':
       ensure  => present,
-      path    => $samba::params::smbconffile,
+      path    => $smbconffile,
       section => 'global',
       setting => 'log level',
       value   => "${sambaloglevel}${logadditional}",
@@ -43,7 +44,7 @@ define samba::log(
       unless member($settingsignored, 'syslog'){
         smb_setting { 'global/syslog':
           ensure  => present,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'syslog',
           value   => "${sambaloglevel}${logadditional}",
@@ -53,7 +54,7 @@ define samba::log(
       unless member($settingsignored, 'syslog only'){
         smb_setting { 'global/syslog only':
           ensure  => present,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'syslog only',
           value   => 'yes',
@@ -63,7 +64,7 @@ define samba::log(
       unless member($settingsignored, 'logging'){
         smb_setting { 'global/logging':
           ensure  => present,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'logging',
           value   => $syslog_loglevel,
@@ -77,7 +78,7 @@ define samba::log(
       unless member($settingsignored, 'syslog only'){
         smb_setting { 'global/syslog only':
           ensure  => present,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'syslog only',
           value   => 'no',
@@ -87,7 +88,7 @@ define samba::log(
       unless member($settingsignored, 'syslog'){
         smb_setting { 'global/syslog':
           ensure  => absent,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'syslog',
         }
@@ -96,7 +97,7 @@ define samba::log(
       unless member($settingsignored, 'logging'){
         smb_setting { 'global/logging':
           ensure  => absent,
-          path    => $samba::params::smbconffile,
+          path    => $smbconffile,
           section => 'global',
           setting => 'logging',
         }
