@@ -57,6 +57,18 @@ class samba::classic(
   $joinou                         = undef,
   Optional[String] $default_realm = undef,
   Array $additional_realms        = [],
+  $krbconffile                    = $samba::params::krbconffile,
+  $nsswitchconffile               = $samba::params::nsswitchconffile,
+  $smbconffile                    = $samba::params:smbconffile,
+  $sambaoptsfile                  = $samba::params::sambaoptsfile,
+  $sambaoptstmpl                  = $samba::params::sambaoptstmpl,
+  $sambacreatehome                = $samba::params::sambacreatehome,
+  $servicesmb                     = $samba::params::servicesmb,
+  $servicewinbind                 = $samba::params::servicewinbind,
+  $packagesambawinbind            = $samba::params::packagesambawinbind,
+  $packagesambansswinbind         = $samba::params::packagesambansswinbind,
+  $packagesambapamwinbind         = $samba::params::packagesambapamwinbind,
+  $packagesambaclassic            = $samba::params::packagesambaclassic,
 ) inherits samba::params{
 
 
@@ -101,13 +113,13 @@ class samba::classic(
 
   file { '/etc/samba/smb_path':
     ensure  => 'present',
-    content => $samba::params::smbconffile,
+    content => $smbconffile,
     require => File['/etc/samba/'],
   }
 
   if $join_domain {
     if $krbconf {
-      file {$samba::params::krbconffile:
+      file {$krbconffile:
         ensure  => present,
         mode    => '0644',
         content => template("${module_name}/krb5.conf.erb"),
@@ -118,39 +130,39 @@ class samba::classic(
     if $nsswitch {
       package{ 'SambaNssWinbind':
         ensure => 'installed',
-        name   => $samba::params::packagesambansswinbind
+        name   => $packagesambansswinbind
       }
 
       augeas{'samba nsswitch group':
-        context => "/files/${samba::params::nsswitchconffile}/",
+        context => "/files/${nsswitchconffile}/",
         changes => [
           'ins service after "*[self::database = \'group\']/service[1]/"',
           'set "*[self::database = \'group\']/service[2]" winbind',
         ],
         onlyif  => 'get "*[self::database = \'group\']/service[2]" != winbind',
         lens    => 'Nsswitch.lns',
-        incl    => $samba::params::nsswitchconffile,
+        incl    => $nsswitchconffile,
       }
       augeas{'samba nsswitch passwd':
-        context => "/files/${samba::params::nsswitchconffile}/",
+        context => "/files/${nsswitchconffile}/",
         changes => [
           'ins service after "*[self::database = \'passwd\']/service[1]/"',
           'set "*[self::database = \'passwd\']/service[2]" winbind',
         ],
         onlyif  => 'get "*[self::database = \'passwd\']/service[2]" != winbind',
         lens    => 'Nsswitch.lns',
-        incl    => $samba::params::nsswitchconffile,
+        incl    => $nsswitchconffile,
       }
     }
 
     if $pam {
       # Only add package here if different to the nss-winbind package,
       # or nss and pam aren't both enabled, to avoid duplicate definition.
-      if ($samba::params::packagesambapamwinbind != $samba::params::packagesambansswinbind)
+      if ($packagesambapamwinbind != $packagesambansswinbind)
       or !$nsswitch {
         package{ 'SambaPamWinbind':
           ensure => 'installed',
-          name   => $::samba::params::packagesambapamwinbind
+          name   => $packagesambapamwinbind
         }
       }
 
@@ -203,13 +215,13 @@ class samba::classic(
 
   package{ 'SambaClassic':
     ensure => 'installed',
-    name   => $samba::params::packagesambaclassic,
+    name   => $packagesambaclassic,
   }
 
   if $manage_winbind {
     package{ 'SambaClassicWinBind':
       ensure  => 'installed',
-      name    => $samba::params::packagesambawinbind,
+      name    => $packagesambawinbind,
       require => File['/etc/samba/smb_path'],
     }
     Package['SambaClassicWinBind'] -> Package['SambaClassic']
@@ -217,7 +229,7 @@ class samba::classic(
 
   service{ 'SambaSmb':
     ensure  => 'running',
-    name    => $samba::params::servivesmb,
+    name    => $servicesmb,
     require => [ Package['SambaClassic'], File['SambaOptsFile'] ],
     enable  => true,
   }
@@ -225,7 +237,7 @@ class samba::classic(
   if $manage_winbind {
     service{ 'SambaWinBind':
       ensure  => 'running',
-      name    => $samba::params::servivewinbind,
+      name    => $servicewinbind,
       require => [ Package['SambaClassic'], File['SambaOptsFile'] ],
       enable  => true,
     }
@@ -233,8 +245,8 @@ class samba::classic(
   $sambamode = 'classic'
   # Deploy /etc/sysconfig/|/etc/defaut/ file (startup options)
   file{ 'SambaOptsFile':
-    path    => $samba::params::sambaoptsfile,
-    content => template($samba::params::sambaoptstmpl),
+    path    => $sambaoptsfile,
+    content => template($sambaoptstmpl),
     require => Package['SambaClassic'],
   }
 
@@ -273,7 +285,7 @@ class samba::classic(
   }
 
   file{ 'SambaCreateHome':
-    path   => $samba::params::sambacreatehome,
+    path   => $sambacreatehome,
     source => "puppet:///modules/${module_name}/smb-create-home.sh",
     mode   => '0755',
   }
