@@ -327,14 +327,21 @@ class samba::classic(
 
   if $manage_winbind and $join_domain {
     unless $adminpassword == undef {
-      $ou = $joinou ? {
-        default => "createcomputer=\"${joinou}\"",
-        undef   => '',
+      $command = $joinou ? {
+        default => $::facts['os']['family'] ? {
+          'RedHat' => "dnshostname=\"${::facts['fqdn']}\" createcomputer=\"${joinou}\"",
+          default  => "createcomputer=\"${joinou}\"",
+        }
+        undef   => $::facts['os']['family'] ? {
+          'RedHat' => "dnshostname=\"${::facts['fqdn']}\"",
+          default  => '',
+        }
       }
+
       exec{ 'Join Domain':
         path    => '/bin:/sbin:/usr/sbin:/usr/bin/',
         unless  => 'net ads testjoin',
-        command => "echo '${adminpassword}'| net ads join -U '${adminuser}' ${ou}",
+        command => "echo '${adminpassword}'| net ads join -U '${adminuser}' ${command}",
         notify  => Service['SambaWinBind'],
         require => [ Package['SambaClassic'], Service['SambaSmb'] ],
       }
