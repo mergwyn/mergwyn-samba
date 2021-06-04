@@ -238,7 +238,7 @@ class samba::classic(
     service{ 'SambaWinBind':
       ensure  => 'running',
       name    => $servicewinbind,
-      require => [ Package['SambaClassic'], File['SambaOptsFile'] ],
+      require => [ Package['SambaClassic'], File['SambaOptsFile'], Exec['Join Domain'], ],
       enable  => true,
     }
   }
@@ -355,7 +355,8 @@ class samba::classic(
         unless  => 'net ads testjoin',
         command => "echo '${adminpassword}'| net ads join -U '${adminuser}' ${command}",
         notify  => Service['SambaWinBind'],
-        require => [ Package['SambaClassic'], Service['SambaSmb'] ],
+        before  => Service['SambaSmb'],
+        require => [ Package['SambaClassic'], ],
       }
     }
   }
