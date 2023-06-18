@@ -35,11 +35,10 @@
 #
 # Copyright 2015 Pierre-Francois Carpentier, unless otherwise noted.
 #
-
 class samba::classic(
-  $smbname                        = undef,
-  $domain                         = undef,
-  $realm                          = undef,
+  Optional[String[1,15]] $smbname = undef,
+  Optional[Stdlib::Fqdn] $domain  = undef,
+  Optional[Stdlib::Fqdn] $realm   = undef,
   $strictrealm                    = true,
   $adminuser                      = 'administrator',
   $adminpassword                  = undef,
@@ -70,20 +69,6 @@ class samba::classic(
   $packagesambapamwinbind         = $samba::params::packagesambapamwinbind,
   $packagesambaclassic            = $samba::params::packagesambaclassic,
 ) inherits samba::params{
-
-
-  unless is_domain_name($realm){
-    fail('realm must be a valid domain')
-  }
-
-  unless is_domain_name($realm){
-    fail('realm must be a valid domain')
-  }
-
-  validate_slength($smbname, 15)
-  unless is_domain_name("${smbname}.${realm}"){
-    fail('smbname must be a valid domain')
-  }
 
   if $strictrealm {
     $tmparr = split($realm, '[.]')

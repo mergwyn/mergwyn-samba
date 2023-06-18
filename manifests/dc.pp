@@ -35,10 +35,9 @@
 #
 # Copyright 2015 Pierre-Francois Carpentier, unless otherwise noted.
 #
-
 class samba::dc(
-  $domain                                                         = undef,
-  $realm                                                          = undef,
+  Optional[Stdlib::Fqdn] $domain                                  = undef,
+  Optional[Stdlib::Fqdn] $realm                                   = undef,
   $dnsbackend                                                     = 'internal',
   Optional[Stdlib::Ip_address] $dnsforwarder                      = undef,
   $adminpassword                                                  = undef,
@@ -118,9 +117,6 @@ must be in ["internal", "bindFlat", "bindDLZ"]')
     fail("role must be in [${checkrolestr}]")
   }
 
-  unless is_domain_name($realm){
-    fail('realm must be a valid domain')
-  }
 
   $tmparr = split($realm, '[.]')
   unless $domain == $tmparr[0] {
